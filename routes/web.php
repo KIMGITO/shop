@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\RiderController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -40,7 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/invoice/{uuid}', [InvoiceController::class, 'show']) -> name('invoice.show');
     Route::get('/credits', [SaleController::class, 'credits'])->name('sale.credits');
     Route::resource('/summaries', SummaryController::class);
-
+    Route::resource('/riders', RiderController::class);
     Route::post('/reminders', [ReminderController::class, 'process'])->name('reminders.set');
     Route::get('/reminders', [ReminderController::class, 'index'])->name('reminders.index');
     Route::get('/reminders/{date}', [ReminderController::class, 'show'])->name('reminders.show');

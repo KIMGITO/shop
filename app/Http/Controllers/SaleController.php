@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
 use Inertia\Inertia;
+use App\Models\Sale;
 use App\Models\Stock;
 use App\Models\Customer;
 use App\Models\Payment;
@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Traits\Date;
 use App\Models\Invoice;
+use Illuminate\Support\Facades\DB;
+use App\Models\Delivery;
+use App\Models\Rider;
 
 class SaleController extends Controller
 {
@@ -41,9 +44,10 @@ class SaleController extends Controller
             ->where('quantity_available', '>', 0)
             ->get();
 
-        $customers = Customer::select(['id', 'first_name'])
+        $customers = Customer::select(['id', 'first_name', 'home','house_number'])
             ->orderBy('first_name')
             ->get();
+        // $riders = Rider::where('active', true)->get();
 
         return Inertia::render('Sales/Add', [
             'stocks' => $stocks,
@@ -69,85 +73,103 @@ class SaleController extends Controller
     public function store(Request $request)
     {
 
+        dd($request);
+
         $validated = $request->validate([
             'customer_id' => 'nullable|integer|exists:customers,id',
             'sale_date' => 'required|date',
             'grand_total' => 'required|numeric|min:0',
             'payment_status' => 'required|in:paid,unpaid,partial',
-            'payment_balance' => 'required|min:0',
+            'payment_balance' => 'required|numeric|min:0',
             'payment_method' => 'required|in:mpesa,cash,credit',
-            'amount_paid' => 'required|min:0',
+            'amount_paid' => 'required|numeric|min:0',
             'sale_items' => 'required|array|min:1',
             'sale_items.*.product_id' => 'required|exists:products,id',
             'sale_items.*.stock_id' => 'required|exists:stocks,id',
             'sale_items.*.sale_quantity' => 'required|numeric|min:0.1',
             'sale_items.*.product_price' => 'required|numeric|min:1',
             'sale_items.*.total_price' => 'required|numeric|min:1',
+            'delivery_data.*.rider_id' => 'required_if:delivery_tag,true|exists:riders,id|integer',
+            'delivery_data.*.delivery_address' => 'required_if:delivery_tag,true|string',
+
         ]);
-        // ! check  if sale is credit, customer id is a must.
 
-        if ($validated['payment_status'] !== 'paid' && $validated['customer_id'] == null) {
-            return back()->withErrors(['customer_id' => 'For credit sale, customer  must be selected.']);
-        }
-        // check if payment method is  credit but there are some money paid
-        
-        if($validated['payment_method'] == 'credit' && $validated['amount_paid'] != 0){
-            return back()->withErrors(['payment_status' => 'Invalid payment method.', 'payment_method' => 'Invalid payment method']);
+        // Credit sale requires a customer
+        if ($validated['payment_status'] !== 'paid' && !$validated['customer_id']) {
+            return back()->withErrors(['customer_id' => 'For credit sale, customer must be selected.']);
         }
 
-       
-
-
+        // Credit method cannot have amount paid > 0
+        if ($validated['payment_method'] === 'credit' && $validated['amount_paid'] != 0) {
+            return back()->withErrors([
+                'payment_status' => 'Invalid payment method.',
+                'payment_method' => 'Invalid payment method'
+            ]);
+        }
 
         $finalSaleItems = Sale::groupSaleItem($validated['sale_items']);
 
-      
 
-        $sale = Sale::create([
+        $sale_attributes = [
             'customer_id' => $validated['customer_id'],
             'date' => $validated['sale_date'],
             'total' => $validated['grand_total'],
             'balance' => $validated['payment_balance'],
             'payment_status' => $validated['payment_status'],
-            'user_id' => Auth::user()->id,
-        ]);
+            'user_id' => Auth::id(),
+        ];
 
-        if ($sale) {
+        $payment_attributes = [
+            'user_id' => Auth::id(),
+            'method' => $validated['payment_method'],
+            'balance' => $validated['payment_balance'],
+            'amount_paid' => $validated['amount_paid'],
+            'date' => $validated['sale_date'],
+        ];
 
-            foreach ($finalSaleItems as $item) {
-                SaleStock::create([
-                    'subtotal' => (float) $item['total_price'],
-                    'stock_id' => $item['stock_id'],
-                    'sale_id' => $sale->id,
-                    'quantity' => (float) $item['sale_quantity']
-                ]);
-                Summary::updateSummary([
-                    'stock_id' => $item['stock_id'],
-                    'summary_date' => $validated['sale_date'],
-                    'opening_stock' => $request['quantity_available'],
-                    'stock_out' => $item['sale_quantity'],
-                ]);
-                Stock::where('id', $item['stock_id'])->decrement('quantity_available', $item['sale_quantity']);
-            }
+        $transaction = DB::transaction(function () use ($sale_attributes, $finalSaleItems, $payment_attributes, $validated) {
+            $sale = Sale::create($sale_attributes);
 
-            // payment recording
-            if ($validated['payment_status'] !== 'unpaid') {
-                $payment = Payment::create(
-                    [
-                        'sale_id' => $sale->id,
-                        'user_id' => Auth::user()->id,
-                        'method' => $validated['payment_method'],
-                        'balance' => $validated['payment_balance'],
-                        'amount_paid' => $validated['amount_paid'],
-                        'date' => $validated['sale_date'],
-                    ]
-                );
-                
-            }
+            $sale->saleStock()->createMany(
+                array_map(function ($item) {
+                    return [
+                        'subtotal' => (float) $item['total_price'],
+                        'stock_id' => $item['stock_id'],
+                        'quantity' => (float) $item['sale_quantity'],
+                    ];
+                }, $finalSaleItems)
+            );
            
-            // Invoice::generateSaleInvoice( $sale->id);
+
+            if ($validated['payment_status'] !== 'unpaid') {
+                $payment_attributes['sale_id'] = $sale->id;
+                Payment::create($payment_attributes);
+            }
+            // check if it has delivery tag and record delivery.
+            if ($request['delivery_tag'])
+            {
+
+                $delivery = Delivery::create([
+                    'sale_id' => $sale->id,
+                    'delivery_date' => $validated['delivery_tag'],
+                    'delivery_status' => 'pending',
+                    'delivery_note' => $validated['delivery_note'],
+                    'delivery_address' => $validated['delivery_address'],
+                    'rider_id' =>$validated['rider_id'],
+                    'created_by' => Auth::id(),
+                ]);
+            }
+
+            return true;
+        }, 3);
+
+        if(!$transaction){
+            return back()->with('error', 'Failed to record sale.');
         }
-        return redirect()->route('dashboard')->with('message' ,'Sale recorded successfully');
+
+        return redirect()
+            ->route('dashboard')
+            ->with('message', 'Sale recorded successfully');
     }
 
     public function show($uuid)

@@ -54,7 +54,7 @@ class Sale extends Model
     }
 
     //! GROUP SIMILAR PRODUCT TO ONE SALE
-    public function scopeGroupSaleItem($query, $saleItems)
+    public static function groupSaleItem( $saleItems)
     {
 
         $grouped = [];

@@ -177,3 +177,10 @@ export interface PaymentProp {
     new_balance: number;
     date: string;
 }
+
+export interface RiderProps{
+    id: number;
+    name: string;
+    phone_number: string;
+    active: boolean
+}

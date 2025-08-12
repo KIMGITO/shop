@@ -1,16 +1,20 @@
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { CardTitle } from '@/components/ui/card';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import AuthLayout from '@/layouts/auth-layout';
-import { Link, router, useForm } from '@inertiajs/react';
-import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useForm } from '@inertiajs/react';
+import { CheckIcon, ChevronsUpDownIcon, Loader2, XSquare } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 import { Customer, Stock } from '../Dashboard/types';
-import axios from 'axios';
 type PaymentMethod = 'mpesa' | 'cash' | 'credit';
 type PaymentStatus = 'paid' | 'partial' | 'unpaid';
 
@@ -38,9 +42,20 @@ interface FormData {
     grand_total: number;
 }
 
+interface DeliveryDataInterface {
+    delivery_address: string | null;
+    rider_id: number | null;
+}
 export default function AddSalesForm({ stocksData, customersData }: { stocksData: Stock[]; customersData: Customer[] }) {
-    const [stocks, setStocks] = useState<Stock[]>(stocksData);
-    const [customers, setCustomers] = useState<Customer[]>(customersData);
+    const stocks = stocksData;
+    const customers = customersData;
+
+    const [isDelivery, setIsDelivery] = useState(false);
+
+    const [deliveryData, setDeliveryData] = useState<DeliveryDataInterface>({
+        rider_id: null,
+        delivery_address: null,
+    });
 
     const [saleItems, setSaleItems] = useState<SaleItem[]>([
         {
@@ -56,7 +71,7 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
         },
     ]);
 
-    const { data, setData, post, errors, processing, reset } = useForm<FormData>({
+    const { data, setData, post, errors, processing } = useForm<FormData>({
         customer_id: null,
         customer_first_name: '',
         sale_items: saleItems,
@@ -66,9 +81,10 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
         amount_paid: 0,
         payment_balance: 0,
         grand_total: 0,
+        delivery_tag: isDelivery,
+        delivery_data: deliveryData,
     });
 
-    
     // Memoize available stocks to prevent unnecessary recalculations
     const availableStocks = useMemo(() => stocks.filter((stock) => Number(stock.quantity_available) > 0), [stocks]);
 
@@ -94,27 +110,42 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
         }));
     }, [saleItems, grandTotal, setData]);
 
-    const addNewProduct = useCallback(() => {
-        if (!allProductsValid) {
-            toast.error('Please fill details for previous product first.');
-            return;
-        }
 
-        setSaleItems((prev) => [
-            ...prev,
+    useEffect(() => {
+        setData((prev) => (
             {
-                product_id: '',
-                product_name: '',
-                product_price: 0,
-                unit: '',
-                stock_id: '',
-                stock_code: '',
-                sale_quantity: 0,
-                stock_available: 0,
-                total_price: 0,
-            },
-        ]);
-    }, [allProductsValid]);
+                ...prev,
+                delivery_tag: isDelivery,
+                delivery_data: deliveryData,
+            }
+        ))
+    }, [deliveryData, isDelivery,setData]);
+
+    const addNewProduct = useCallback(
+        (e: React.FormEvent) => {
+            e.preventDefault();
+            if (!allProductsValid) {
+                toast.error('Please fill details for previous product first.');
+                return;
+            }
+
+            setSaleItems((prev) => [
+                ...prev,
+                {
+                    product_id: '',
+                    product_name: '',
+                    product_price: 0,
+                    unit: '',
+                    stock_id: '',
+                    stock_code: '',
+                    sale_quantity: 0,
+                    stock_available: 0,
+                    total_price: 0,
+                },
+            ]);
+        },
+        [allProductsValid],
+    );
 
     const removeProduct = useCallback((index: number) => {
         setSaleItems((prev) => {
@@ -168,8 +199,15 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
             setData((prev) => ({
                 ...prev,
                 customer_id: customer?.id || null,
-                customer_first_name: customer?.first_name || '',
+                customer_first_name: customer?.first_name || 'walk In',
             }));
+
+            if (customer?.id != null) {
+                setDeliveryData((prev) => ({
+                    ...prev,
+                    delivery_address: `${customer.home}  house Number: ${customer.house_number}`,
+                }));
+            }
         },
         [setData],
     );
@@ -194,46 +232,58 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
         [setData],
     );
 
-   const confirmAction = (message: string, onConfirm: () => void) => {
-       toast.warning(message, {
-           action: {
-               label: (
-                   <div className="flex gap-2">
-                       <button className="rounded px-2 py-1 text-sm hover:bg-gray-500" onClick={(e: React.FormEvent) => { e.preventDefault(); toast.dismiss()}}>
-                           No
-                       </button>
-                       <button
-                           className="rounded  px-2 py-1 text-sm text-red-700 hover:bg-red-600"
-                           onClick={(e: React.FormEvent) => {
-                               e.preventDefault()
-                               onConfirm();
-                               toast.dismiss();
-                           }}
-                       >
-                           Yes
-                       </button>
-                   </div>
-               ),
-           },
-           duration: 3000,
-           position: 'top-center',
-       });
-   };
+    const confirmAction = (message: string, onConfirm: () => void) => {
+        toast.warning(message, {
+            action: {
+                label: (
+                    <div className="flex gap-2">
+                        <button
+                            className="rounded px-2 py-1 text-sm hover:bg-gray-500"
+                            onClick={(e: React.FormEvent) => {
+                                e.preventDefault();
+                                toast.dismiss();
+                            }}
+                        >
+                            No
+                        </button>
+                        <button
+                            className="rounded px-2 py-1 text-sm text-red-700 hover:bg-red-600"
+                            onClick={(e: React.FormEvent) => {
+                                e.preventDefault();
+                                onConfirm();
+                                toast.dismiss();
+                            }}
+                        >
+                            Yes
+                        </button>
+                    </div>
+                ),
+            },
+            duration: 3000,
+            position: 'top-center',
+        });
+    };
 
-    const cancelSale = (e: React.FormEvent)  => {
+    const cancelSale = (e: React.FormEvent) => {
         e.preventDefault();
         confirmAction('Cancel this sale?', () => {
             toast.success('Sale cancelled', {
                 duration: 1500,
                 action: setTimeout(() => {
                     window.location.reload();
-                },1600)
-                
+                }, 1600),
             });
-            
-           
         });
     };
+    const riders = [
+        {
+            value: 'shauline',
+            label: 'Shauline',
+        },
+    ];
+
+    const [open, setOpen] = React.useState(false);
+    const [value, setValue] = React.useState('');
 
     const handlePartialPaymentChange = useCallback(
         (value: string) => {
@@ -253,19 +303,23 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
     const submit = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault();
+            
+            
             if (!allProductsValid) {
                 toast.error('Please complete all product details');
                 return;
             }
+            
 
-            post(route('sale.store'), {
-                data: {
-                    ...data,
-                    sale_items: saleItems,
-                },
-            });
+            setData((prev) => ({
+                ...prev,
+                delivery_tag: isDelivery,
+                delivery_data: deliveryData,
+            }));
+
+            post(route('sale.store'));
         },
-        [allProductsValid, data, post, saleItems],
+        [allProductsValid,  post, deliveryData,isDelivery,setData],
     );
 
     return (
@@ -277,30 +331,48 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="customer_id">Customer</Label>
-                        <Select
-                            value={data.customer_id ? JSON.stringify({ id: data.customer_id, first_name: data.customer_first_name }) : ''}
-                            onValueChange={handleCustomerChange}
-                            disabled={processing}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder={data.customer_first_name || 'Select customer'} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {customers.map((customer) => (
-                                    <SelectItem key={customer.id} value={JSON.stringify(customer)}>
-                                        {customer.first_name}
-                                    </SelectItem>
-                                ))}
-                                <SelectItem value={null}>Walk in</SelectItem>
-                                <div className="mt-4 rounded p-2">
-                                    No Customer.
-                                    <Link href={route('customers.create')} className="ml-1 underline">
-                                        Add a customer?
-                                    </Link>
-                                </div>
-                            </SelectContent>
-                        </Select>
-                        <InputError message={errors.customer_id} />
+                        <Popover>
+                            <PopoverTrigger id="customer_id">
+                                <Button type="button" className="w-full border" variant={'ghost'}>
+                                    {data.customer_first_name || 'Select Customer'} <ChevronsUpDownIcon />
+                                </Button>
+                            </PopoverTrigger>
+                            <InputError message={errors.customer_id} />
+                            <PopoverContent>
+                                <Command>
+                                    <CommandInput placeholder="search customer..." />
+
+                                    <CommandList>
+                                        <CommandEmpty className="p-0">not available</CommandEmpty>
+                                        <CommandGroup>
+                                            <CommandItem
+                                                key={-1}
+                                                value="NULL"
+                                                onSelect={() => {
+                                                    setData((prev) => ({ ...prev, customer_first_name: '' }));
+                                                    handleCustomerChange(JSON.stringify(null));
+                                                }}
+                                            >
+                                                not available
+                                            </CommandItem>
+
+                                            {customers.map((customer, i) => (
+                                                <CommandItem
+                                                    key={i}
+                                                    value={customer.first_name}
+                                                    onSelect={() => {
+                                                        setData((prev) => ({ ...prev, customer_first_name: customer.first_name }));
+                                                        handleCustomerChange(JSON.stringify(customer));
+                                                    }}
+                                                >
+                                                    {customer.first_name}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
 
                     <div className="space-y-2">
@@ -453,12 +525,77 @@ export default function AddSalesForm({ stocksData, customersData }: { stocksData
                         </div>
                     )}
                 </div>
+                <div className="w-full justify-end">
+                    <Button
+                        hidden={isDelivery}
+                        type="button"
+                        size={'sm'}
+                        variant={'outline'}
+                        className=""
+                        onClick={() => {
+                            setIsDelivery(true);
+                        }}
+                    >
+                        Set As Delivery
+                    </Button>
+                </div>
+                <div hidden={!isDelivery} className="flex flex-col justify-between space-y-4 rounded-2xl border p-4">
+                    <div className="flex justify-between">
+                        <CardTitle>Delivery Details</CardTitle>
+                        <Tooltip>
+                            <TooltipTrigger type='button' onClick={() => setIsDelivery(false)}>
+                                <XSquare className="hover:text-red-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>Remove delivery tag</TooltipContent>
+                        </Tooltip>
+                    </div>
+                    <div className="flex w-full justify-between gap-2">
+                        <Popover open={open} onOpenChange={setOpen}>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" role="combobox" aria-expanded={open} className="justify-between">
+                                    {value ? riders.find((rider) => rider.value === value)?.label : 'Select rider...'}
+                                    <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent hidden={true} className="w-[200px] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search rider..." />
+                                    <CommandList>
+                                        <CommandEmpty>No rider selected</CommandEmpty>
+                                        <CommandGroup>
+                                            {riders.map((rider) => (
+                                                <CommandItem
+                                                    key={rider.value}
+                                                    value={rider.value}
+                                                    onSelect={(currentValue) => {
+                                                        setValue(currentValue === value ? '' : currentValue);
+                                                        // setOpen(false);
+                                                    }}
+                                                >
+                                                    <CheckIcon className={cn('mr-2 h-4 w-4', value === rider.value ? 'opacity-100' : 'opacity-0')} />
+                                                    {rider.label}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                        <Input
+                            value={deliveryData.delivery_address || ''}
+                            onChange={(e) => {
+                                setDeliveryData((prev) => ({ ...prev, delivery_address: e.target.value }));
+                            }}
+                            placeholder="Delivery Address"
+                        />
+                    </div>
+                </div>
 
-                <div className="mt-6 flex justify-end gap-2">
+                <div className="mt-6 flex justify-between gap-2">
                     <Button type="button" variant="outline" onClick={cancelSale}>
                         Cancel Sale
                     </Button>
-                    <Button type="submit" disabled={processing}>
+                    <Button type="submit" disabled={processing || !allProductsValid}>
                         {processing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         Complete Sale
                     </Button>

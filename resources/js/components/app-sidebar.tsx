@@ -17,9 +17,11 @@ import {
     LayoutGrid,
     Map,
     Milk,
+    PersonStanding,
     PieChart,
     PillBottle,
     Settings2,
+    Truck,
     Users,
     UsersRound,
     Wallet,
@@ -59,33 +61,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 title: 'Main',
                 url: '#',
                 icon: LayoutGrid,
-                
+
                 isActive: true,
-                
+
                 items: [
                     {
                         title: 'Dashboard',
                         url: '/dashboard',
                         icon: LayoutDashboardIcon,
-                        
-                        
-                        
                     },
                     {
                         title: 'Sales',
                         url: '/sale',
                         icon: DollarSignIcon,
                     },
-                    {
-                        title: 'Stock Movements',
-                        url: '/stock-movements',
-                        icon: ArrowLeftRightIcon,
-                    },
 
                     {
                         title: 'Daily Summary',
                         url: '/summaries',
                         icon: BookOpen,
+                    },
+                    {
+                        title: 'Deliveries',
+                        url: '/deliveries',
+                        icon: Truck,
                     },
                 ],
             },
@@ -104,11 +103,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         url: '/stock',
                         icon: Blocks,
                     },
-                    {
-                        title: 'Bottles',
-                        url: '/bottles',
-                        icon: PillBottle,
-                    },
                 ],
             },
             {
@@ -122,14 +116,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         icon: UsersRound,
                     },
                     {
+                        title: 'Riders',
+                        url: '/riders',
+                        icon: PersonStanding,
+                    },
+                    {
                         title: 'Billed',
                         url: '/billed',
                         icon: Euro,
-                    },
-                    {
-                        title: 'Pending Bills',
-                        url: '/credits',
-                        icon: BookMarkedIcon,
                     },
                     {
                         title: 'Invoices',
