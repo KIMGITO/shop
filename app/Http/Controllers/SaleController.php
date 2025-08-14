@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Delivery;
 use App\Models\Rider;
 use App\Http\Requests\StoreSaleRequest;
+use Carbon\Carbon;
 
 class SaleController extends Controller
 {
@@ -134,10 +135,10 @@ class SaleController extends Controller
 
                 $delivery = Delivery::create([
                     'sale_id' => $sale->id,
-                    'delivery_date' => Date::now(),
-                    'delivery_status' => 'pending',
-                    'delivery_note' => 'No note',
-                    'delivery_address' => $validated['delivery_address'],
+                    'date' => Carbon::now(),
+                    'status' => 'pending',
+                    'note' => 'No note',
+                    'address' => $validated['delivery_address'],
                     'rider_id' =>$validated['rider_id'],
                     'created_by' => Auth::id(),
                 ]);

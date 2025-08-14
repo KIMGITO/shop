@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->foreignId('sale_id')->nullable()->constrained('sales')->cascadeOnDelete();
-            $table->string('delivery_date');
-            $table->enum('delivery_status', ['pending', 'on_progress', 'complete']);
-            $table->string('delivery_note');
-            $table->string('delivery_address');
+            $table->string('date');
+            $table->enum('status', ['pending', 'on_progress', 'complete']);
+            $table->string('note');
+            $table->string('address');
             $table->foreignId('rider_id')->nullable()->constrained('riders')->cascadeOnDelete();
+            $table->foreignId(('created_by'))->nullable()->constrained('users')->cascadeOnDelete();
         });
     }
 

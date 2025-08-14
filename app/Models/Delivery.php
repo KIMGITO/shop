@@ -11,10 +11,10 @@ class Delivery extends Model
     protected $table = 'deliveries';
     protected $fillable= [
         'sale_id',
-        'delivery_date',
-        'delivery_status',
-        'delivery_note',
-        'delivery_address',
+        'date',
+        'status',
+        'note',
+        'address',
         'rider_id',
         'created_by',
     ];  
