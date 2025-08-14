@@ -41,29 +41,13 @@ interface SaleProps {
     customers: Customer[];
 }
 
-const breadcrumb = [
-    {
-        title: 'HOME',
-        href: '/dashboard',
-    },
-    {
-        title: 'Sales',
-        href: '/sale',
-    },
-    {
-        title: 'Add new sale',
-        href: '/sale/create',
-    }
-];
+
 
 export default function AddSale({ customers, stocks }: SaleProps) {
     
     return (
-        <AppLayout breadcrumbs={breadcrumb}>
-            <Head title="Record New Sale" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        
                 <AddSalesForm stocksData={stocks} customersData={customers} />
-            </div>
-        </AppLayout>
+            
     );
 }

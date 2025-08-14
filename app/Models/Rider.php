@@ -13,4 +13,8 @@ class Rider extends Model
         'active'
     ];
 
+
+    public function creator(){
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

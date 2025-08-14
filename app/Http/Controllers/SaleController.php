@@ -16,6 +16,7 @@ use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 use App\Models\Delivery;
 use App\Models\Rider;
+use App\Http\Requests\StoreSaleRequest;
 
 class SaleController extends Controller
 {
@@ -47,11 +48,12 @@ class SaleController extends Controller
         $customers = Customer::select(['id', 'first_name', 'home','house_number'])
             ->orderBy('first_name')
             ->get();
-        // $riders = Rider::where('active', true)->get();
+        $riders = Rider::all();
 
-        return Inertia::render('Sales/Add', [
-            'stocks' => $stocks,
-            'customers' => $customers
+        return Inertia::render('Sales/AddSale', [
+            'stocksData' => $stocks,
+            'customersData' => $customers,
+            'ridersData' =>$riders,
         ]);
     }
 
@@ -70,29 +72,10 @@ class SaleController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store( StoreSaleRequest $request)
     {
 
-        dd($request);
-
-        $validated = $request->validate([
-            'customer_id' => 'nullable|integer|exists:customers,id',
-            'sale_date' => 'required|date',
-            'grand_total' => 'required|numeric|min:0',
-            'payment_status' => 'required|in:paid,unpaid,partial',
-            'payment_balance' => 'required|numeric|min:0',
-            'payment_method' => 'required|in:mpesa,cash,credit',
-            'amount_paid' => 'required|numeric|min:0',
-            'sale_items' => 'required|array|min:1',
-            'sale_items.*.product_id' => 'required|exists:products,id',
-            'sale_items.*.stock_id' => 'required|exists:stocks,id',
-            'sale_items.*.sale_quantity' => 'required|numeric|min:0.1',
-            'sale_items.*.product_price' => 'required|numeric|min:1',
-            'sale_items.*.total_price' => 'required|numeric|min:1',
-            'delivery_data.*.rider_id' => 'required_if:delivery_tag,true|exists:riders,id|integer',
-            'delivery_data.*.delivery_address' => 'required_if:delivery_tag,true|string',
-
-        ]);
+        $validated = $request->validated();
 
         // Credit sale requires a customer
         if ($validated['payment_status'] !== 'paid' && !$validated['customer_id']) {
@@ -127,7 +110,7 @@ class SaleController extends Controller
             'date' => $validated['sale_date'],
         ];
 
-        $transaction = DB::transaction(function () use ($sale_attributes, $finalSaleItems, $payment_attributes, $validated) {
+        $transaction = DB::transaction(function () use ($sale_attributes, $request, $finalSaleItems, $payment_attributes, $validated) {
             $sale = Sale::create($sale_attributes);
 
             $sale->saleStock()->createMany(
@@ -151,9 +134,9 @@ class SaleController extends Controller
 
                 $delivery = Delivery::create([
                     'sale_id' => $sale->id,
-                    'delivery_date' => $validated['delivery_tag'],
+                    'delivery_date' => Date::now(),
                     'delivery_status' => 'pending',
-                    'delivery_note' => $validated['delivery_note'],
+                    'delivery_note' => 'No note',
                     'delivery_address' => $validated['delivery_address'],
                     'rider_id' =>$validated['rider_id'],
                     'created_by' => Auth::id(),

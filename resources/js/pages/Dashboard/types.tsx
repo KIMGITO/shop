@@ -181,6 +181,6 @@ export interface PaymentProp {
 export interface RiderProps{
     id: number;
     name: string;
-    phone_number: string;
+    phone: string;
     active: boolean
 }
