@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/helper/formatCurrency';
 import { formatDate } from '@/helper/formatDate';
@@ -8,8 +8,10 @@ import formatNumber from '@/helper/formatNumber';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, Link } from '@inertiajs/react';
-import { Printer } from 'lucide-react';
+import { LoaderCircle, Printer } from 'lucide-react';
 import { Sale } from '../types/sale';
+import { useState } from 'react';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/components/ui/dialog';
 // import { Sale, Customer, Payment } from '@/types/sales';
 
 interface SalesProp {
@@ -17,6 +19,8 @@ interface SalesProp {
 }
 
 export default function Info({ sale }: SalesProp) {
+
+    const [processing, setProcessing] = useState(false);
  
     const breadcrumb = [
         { title: 'Sales', href: '/sale' },
@@ -24,7 +28,10 @@ export default function Info({ sale }: SalesProp) {
     ];
 
     const handlePrint = () => {
+        setProcessing(true);
         window.location.href = `/invoice/${sale.uuid}`;
+        // window.location.href = `/storage/invoices-pdf/${sale.invoice_number}.pdf`;
+
     };
 
     const statusColors = {
@@ -40,7 +47,7 @@ export default function Info({ sale }: SalesProp) {
             <Head title="Sale Information" />
             <div className="flex justify-center p-4">
                 <AuthLayout description="Sale" title="Sales Transaction Info">
-                    <Card className={`w-full max-w-4xl ${currentStatus.bg} text-secondary border-0 shadow-none`}>
+                    <Card className={`w-full max-w-4xl ${currentStatus.bg} border-0 text-secondary shadow-none`}>
                         <CardHeader className="pb-4">
                             <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
                                 <div className="flex items-center gap-3">
@@ -52,6 +59,21 @@ export default function Info({ sale }: SalesProp) {
                                 <div className="text-sm text-gray-500">{formatDate(sale.date)}</div>
                             </div>
                         </CardHeader>
+
+                        <Dialog open={processing}>
+                            <DialogOverlay className="bg-primary/70">
+                                <DialogClose hidden={true} disabled />
+
+                                <DialogContent showCloseButton={false} className=" bg-transparent border-none text-white shadow-none">
+         
+
+                                    <div className="flex flex-col items-center justify-center">
+                                        <LoaderCircle className=" h-[100px] w-[100px] animate-spin" />
+                                        <CardDescription>Processing ...</CardDescription>
+                                    </div>
+                                </DialogContent>
+                            </DialogOverlay>
+                        </Dialog>
 
                         <CardContent className="space-y-6">
                             {/* Customer Info */}
@@ -130,9 +152,11 @@ export default function Info({ sale }: SalesProp) {
 
                         <CardFooter className="flex justify-between border-t pt-6">
                             <Link href={route('sale.index')}>
-                                <Button variant="ghost">Back to Sales</Button>
+                                <Button disabled={processing} variant="ghost">
+                                    Back to Sales
+                                </Button>
                             </Link>
-                            <Button onClick={handlePrint}>
+                            <Button disabled={processing} onClick={handlePrint}>
                                 <Printer className="mr-2 h-4 w-4" />
                                 Print Invoice
                             </Button>

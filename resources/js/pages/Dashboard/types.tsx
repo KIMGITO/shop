@@ -178,9 +178,21 @@ export interface PaymentProp {
     date: string;
 }
 
+
+export interface DeliveryProp {
+    sale: Sale;
+    date: string;
+    status: string;
+    note: string;
+    address:string;
+    rider:RiderProps;
+    created_by:number;
+}
+
 export interface RiderProps{
     id: number;
     name: string;
     phone: string;
-    active: boolean
+    active: boolean;
+    deliveries: DeliveryProp[];
 }

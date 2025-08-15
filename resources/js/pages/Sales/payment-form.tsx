@@ -140,7 +140,7 @@ export default function PaymentForm({ saleId, saleBalance, onClose, onChange }: 
                         </div>
                         <div className="mt-20 flex w-full justify-center py-8">
                             <Skeleton className="h-[28px] w-8/12 rounded bg-gray-200 flex justify-center" >
-                                <Loader className='animate-spin text-red-900/40 animate-pulse items-center '/>
+                                <Loader className='animate-spin text-red-900/40 items-center '/>
                             </Skeleton>
 
                         </div>
@@ -182,11 +182,21 @@ export default function PaymentForm({ saleId, saleBalance, onClose, onChange }: 
                         max={sale?.balance}
                         step="any"
                         value={paymentData.amount_paid > balance ? balance : paymentData.amount_paid || ''}
-                        onChange={(e) =>
-                            setPaymentData((pre) => ({
+                            onChange={(e) =>
+                            
+                            {
+                                if (parseFloat(e.target.value) > balance) {
+                                    setPaymentData((pre) => ({
+                                ...pre,
+                                amount_paid: balance,
+                            }))
+                                } else {
+                                 setPaymentData((pre) => ({
                                 ...pre,
                                 amount_paid: parseFloat(e.target.value),
-                            }))
+                            }))   
+                                }
+                                }
                         }
                         disabled={processing}
                         className="focus:border-green-500 focus:ring-2 focus:ring-green-500"

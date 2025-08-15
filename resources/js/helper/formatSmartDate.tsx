@@ -13,9 +13,11 @@ export function formatSmartDate(dateInput: string | Date): string {
 
     if (diffDays <= 7) {
         return date.format('dddd'); // e.g. "Monday"
-    } else if (diffDays <= 30) {
-        return date.fromNow(); // e.g. "14 days ago"
-    } else {
+    }
+    // else if (diffDays <= 30) {
+    //     return date.fromNow(); // e.g. "14 days ago"
+    // }
+    else {
         return date.format('Do MMMM'); // e.g. "19th July"
     }
 }

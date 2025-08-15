@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Toaster } from '@/components/ui/sonner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { Dialog } from '@radix-ui/react-dialog';
 import axios from 'axios';
 import { Edit2Icon, InfoIcon, Loader2, Trash2Icon } from 'lucide-react';
@@ -163,7 +163,9 @@ export default function Index({ ridersData }: { ridersData: RiderProps[] }) {
         });
     }
 
-   
+    const riderInfo = (id: number) => {
+        router.get(route('riders.show', id));
+   }
 
     return (
         <AppLayout breadcrumbs={breadcrumb}>
@@ -245,7 +247,7 @@ export default function Index({ ridersData }: { ridersData: RiderProps[] }) {
                                             <TableCell>{rider.active ? 'Active' : 'Inactive'}</TableCell>
                                             <TableCell className="flex justify-end gap-2">
                                                 <IconButton onClick={() => editRider(rider)} icon={Edit2Icon} colorVariant="success" />
-                                                <IconButton icon={InfoIcon} colorVariant="info" />
+                                                <IconButton onClick={()=>riderInfo(rider.id)} icon={InfoIcon} colorVariant="info" />
                                                 <Tooltip>
                                                     {' '}
                                                     <TooltipTrigger>

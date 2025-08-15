@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Customer } from '@/types copy/sale';
 import { ChevronsUpDownIcon } from 'lucide-react';
+import { useState } from 'react';
 
 export function CustomerSection({
     customers,
@@ -23,13 +24,15 @@ export function CustomerSection({
     processing: boolean;
     setData: any;
     handleCustomerChange: (value: string) => void;
-}) {
+    }) {
+    
+    const [popoverOpen, setPopoverOpen] = useState(false);
     return (
         <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="customer_id">Customer</Label>
-                <Popover>
-                    <PopoverTrigger id="customer_id">
+                <Popover open={popoverOpen}>
+                    <PopoverTrigger onClick={()=>setPopoverOpen(!popoverOpen)} id="customer_id">
                         <Button type="button" className="w-full border" variant={'ghost'}>
                             {customerFirstName || 'Select Customer'} <ChevronsUpDownIcon />
                         </Button>
@@ -47,6 +50,7 @@ export function CustomerSection({
                                         onSelect={() => {
                                             setData((prev: any) => ({ ...prev, customer_first_name: '' }));
                                             handleCustomerChange(JSON.stringify(null));
+                                            setPopoverOpen(false);
                                         }}
                                     >
                                         not available
@@ -58,6 +62,7 @@ export function CustomerSection({
                                             onSelect={() => {
                                                 setData((prev: any) => ({ ...prev, customer_first_name: customer.first_name }));
                                                 handleCustomerChange(JSON.stringify(customer));
+                                                setPopoverOpen(false);
                                             }}
                                         >
                                             {customer.first_name}

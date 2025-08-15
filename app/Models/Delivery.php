@@ -32,5 +32,9 @@ class Delivery extends Model
         return $this->belongsTo(Rider::class);
     }
 
+    public function customer (){
+        return $this->hasOneThrough(Customer::class, Sale::class, 'id', 'id', 'sale_id', 'customer_id');
+    }
+
 
 }

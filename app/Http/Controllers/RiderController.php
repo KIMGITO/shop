@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\RiderStoreRequest;
 use App\Http\Requests\UpdateRiderRequest;
 use App\Http\Resources\RiderResource;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Log;
 
 class RiderController extends Controller
@@ -16,8 +17,7 @@ class RiderController extends Controller
     public function index(Request $request)
     {
         $riders = Rider::with(['creator'])->latest()->get();
-        if ($request->expectsJson())
-        {
+        if ($request->expectsJson()) {
             return response()->json([
                 'ridersData' => $riders,
             ]);
@@ -47,25 +47,20 @@ class RiderController extends Controller
         ]);
 
 
-        try
-        {
+        try {
 
             $message = 'Rider created successfully.';
             $rider = Rider::create($validated);
-            if ($request->expectsJson())
-            {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $message
                 ]);
             }
 
             return back()->with('message', $message);
-
-        } catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
             $error = 'Failed to create rider.';
-            if ($request->expectsJson())
-            {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'error' => $error
                 ]);
@@ -74,9 +69,41 @@ class RiderController extends Controller
         }
     }
 
-    public function edit()
+    public function show(Request $request, Rider $rider)
     {
+        $isJsonRequest = $request->expectsJson();
 
+        $error = '';
+        try {
+            $data =  Rider::with(['deliveries.sale'])->findOrFail($rider->id);
+
+            if ($isJsonRequest) {
+                return response()->json([
+                    'data' => $data,
+                ]);
+            }
+
+            return Inertia::render('Riders/Info', [
+                'riderData' => $data,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            $error = 'User not found.';
+            if ($isJsonRequest) {
+                return response()->json([
+                    'error' => $error,
+                ], 404);
+            }
+
+            return back()->with('error', $error);
+        } catch (\Exception $e) {
+            $error = 'Failed to get rider.';
+            if ($isJsonRequest) {
+                return response()->json([
+                    'error' => $error,
+                ], 500);
+            }
+            return back()->with('error', $error);
+        }
     }
 
     public function update(UpdateRiderRequest $request, Rider $rider)
@@ -84,29 +111,22 @@ class RiderController extends Controller
         $validated = $request->validated();
         $success = 'Rider updated successfully.';
         $error = 'Rider not updated, try again.';
-        try
-        {
+        try {
             $rider->update($validated);
-            if ($request->expectsJson())
-            {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $success
                 ]);
             }
             return back()->with('message', $success);
-
-        } catch (\Exception $e)
-        {
-            if ($request->expectsJson())
-            {
+        } catch (\Exception $e) {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'error' => $error
-                ],500);
+                ], 500);
             }
             return back()->with('error', $error);
         }
-
-
     }
 
     public function destroy(Request $request, Rider $rider)
@@ -115,30 +135,25 @@ class RiderController extends Controller
         $message = 'Rider deleted successfully.';
 
 
-        try
-        {
+        try {
 
             $rider->delete();
 
-            if ($request->expectsJson())
-            {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $message,
                 ]);
-
             }
             return back()->with('message', $message);
-        } catch (\Exception $e)
-        {
+        } catch (\Exception $e) {
 
-            if ($request->expectsJson())
-            {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'error' => $error,
-                ],500);
+                ], 500);
             }
 
-            return back() -> with('error',$error);
+            return back()->with('error', $error);
         }
     }
 }

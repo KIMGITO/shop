@@ -17,4 +17,8 @@ class Rider extends Model
     public function creator(){
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function deliveries(){
+        return $this->hasMany(Delivery::class);
+    }
 }

@@ -18,3 +18,12 @@
 
 later
 --
+
+config - 
+dont need both names for customer, 
+make sure stock gets the unit of measuring  (liters, pice,etc)
+stock source should not show as optional requirement.
+-check total debt on dashboard  not to show NAN 
+- make sale confirm that everything is okay before submitting the data
+- logic to  hooka  delivery to a sale if was forgotten or so.
+- 
