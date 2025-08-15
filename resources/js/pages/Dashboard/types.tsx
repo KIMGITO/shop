@@ -196,3 +196,18 @@ export interface RiderProps{
     active: boolean;
     deliveries: DeliveryProp[];
 }
+
+export interface CustomerProp{
+    id: number;
+    uuid: string;
+    first_name: string;
+    last_name: string;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    note: string;
+    bill: number;
+    sales: Sale[];
+
+}

@@ -70,6 +70,22 @@ class CustomerController extends Controller
         return redirect()->route('dashboard')->with('message', 'Customer updated successfully');
     }
 
+    public function show(Request $request, Customer $customer){
+        $customerData = Customer::with(['sales'])->findOrFail($customer->id);
+        $customerData['bill'] = $customerData->sales->sum('balance');
+
+
+        
+        if($request->expectsJson()){
+            return response()->json($customerData);
+        }
+
+
+        return Inertia::render('Customers/Info',[
+            'customerData' => $customerData,
+        ]);
+    }
+
     // Delete customer
     public function destroy(Customer $customer)
     {

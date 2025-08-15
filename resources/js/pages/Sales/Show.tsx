@@ -9,16 +9,14 @@ import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import { Head, Link } from '@inertiajs/react';
 import { LoaderCircle, Printer } from 'lucide-react';
-import { Sale } from '../types/sale';
 import { useState } from 'react';
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from '@/components/ui/dialog';
+import { Sale } from '../Dashboard/types';
 // import { Sale, Customer, Payment } from '@/types/sales';
 
-interface SalesProp {
-    sale: Sale;
-}
 
-export default function Info({ sale }: SalesProp) {
+
+export default function Info({ sale }: {sale:Sale}) {
 
     const [processing, setProcessing] = useState(false);
  
@@ -151,11 +149,9 @@ export default function Info({ sale }: SalesProp) {
                         </CardContent>
 
                         <CardFooter className="flex justify-between border-t pt-6">
-                            <Link href={route('sale.index')}>
-                                <Button disabled={processing} variant="ghost">
-                                    Back to Sales
+                                <Button onClick={()=> window.history.back()} disabled={processing} variant="ghost">
+                                    Back 
                                 </Button>
-                            </Link>
                             <Button disabled={processing} onClick={handlePrint}>
                                 <Printer className="mr-2 h-4 w-4" />
                                 Print Invoice

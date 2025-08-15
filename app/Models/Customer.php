@@ -25,11 +25,24 @@ class Customer extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+    
 
     public function getRouteKeyName()
     {
         return 'uuid';
     }
+
+    protected $appends = ['address','name'];
+
+    public function getAddressAttribute()
+    {
+        return"$this->home  $this->house_number";
+    }
+
+    public function getNameAttribute(){
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
 
 
     protected function billDuration (){
@@ -42,18 +55,35 @@ class Customer extends Model
         
     }
 
-    protected function name()
-    {
+    protected function firstName(){
         return Attribute::make(
-            get: fn(string $value) => ucfirst($value),
-            set: fn($value) => Str::lower($value),
+            get: fn ($value) => ucfirst($value),
+            set: fn ($value) => Str::lower($value)
         );
+    }
+
+    protected function lastName(){
+        return Attribute::make(
+            get: fn ($value) => ucfirst($value),
+            set: fn ($value) => Str::lower($value)
+            );
+    }
+
+
+    public function sales (){
+        return $this->hasMany(Sale::class);
+    }
+
+    public function payments(){
+        return $this->hasManyThrough(Sale::class, Payment::class);
     }
     
 
     public function invoices(){
         return $this->hasMany(Invoice::class);
     }
+
+    
     
 
 
@@ -66,6 +96,8 @@ class Customer extends Model
                 $model->uuid = Str::uuid();
             }
         });
+
+        
     }
 
 

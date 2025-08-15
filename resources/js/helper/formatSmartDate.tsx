@@ -11,7 +11,10 @@ export function formatSmartDate(dateInput: string | Date): string {
 
     const diffDays = now.diff(date, 'day');
 
-    if (diffDays <= 7) {
+    if (diffDays == 0) {
+        return 'Today'
+    }
+    else if (diffDays <= 7) {
         return date.format('dddd'); // e.g. "Monday"
     }
     // else if (diffDays <= 30) {

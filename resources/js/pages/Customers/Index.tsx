@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { InfoIcon, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Toaster, toast } from 'sonner';
 
@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { formatDate } from '@/helper/formatDate';
 import ucfirst from '@/helper/ucfirst';
 import AppLayout from '@/layouts/app-layout';
+import { IconButton } from '@/components/icon-button';
 
 interface Customer {
     id: number;
@@ -67,6 +68,10 @@ export default function CustomerIndex({ customers }: { customers: Customer[] }) 
             });
         }
     }, [message]);
+
+    const customerInfo = (uuid:string) => {
+        router.get(route('customers.show', uuid));
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -115,6 +120,7 @@ export default function CustomerIndex({ customers }: { customers: Customer[] }) 
                                         <td className="px-4 py-2">{formatDate(customer.created_at)}</td>
                                         <td className="px-4 py-2">{customer.note}</td>
                                         <td>
+                                            <IconButton icon={InfoIcon} onClick={()=>customerInfo(customer.uuid)}/>
                                             <Link href={route('customers.edit', customer.uuid)} className="">
                                                 <Button size="sm" variant="ghost" className="p-0 text-yellow-500">
                                                     <Pencil className="h-4 w-4 text-yellow-500" />
@@ -133,6 +139,7 @@ export default function CustomerIndex({ customers }: { customers: Customer[] }) 
                                                             Are you sure you want to delete this customer? This action is irreversible.
                                                         </AlertDialogDescription>
                                                     </AlertDialogHeader>
+                                                
                                                     <AlertDialogFooter>
                                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                                                         <AlertDialogAction
