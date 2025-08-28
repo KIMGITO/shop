@@ -15,9 +15,7 @@ class SaleObserver
     public function created(Sale $sale): void
     {
         
-        GenerateSaleInvoice::dispatch($sale->uuid)
-            ->onQueue('invoices')
-            ->delay(now()->addSeconds(59)); 
+        
     }
 
     /**

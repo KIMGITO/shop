@@ -4,16 +4,17 @@ use Inertia\Inertia;
 use App\Models\Stock;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\RiderController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\CreditController;
+use App\Http\Controllers\BillingController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ReminderController;
-use App\Http\Controllers\RiderController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -36,19 +37,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/payments', PaymentController::class);//CRUD
     Route::resource('/sale', SaleController::class); //CRUD
     Route::get('/sale/create-async', [SaleController::class, 'createAsync']);
-    Route::get('/billed', [SaleController::class, 'billed'])->name('billed');
     Route::resource('/customers', CustomerController::class); //CRUD
     Route::get('/invoice/{uuid}', [InvoiceController::class, 'show']) -> name('invoice.show');
+    Route::get('/invoice/show/{uuid}', [BillingController::class, 'getCustomerDebts'])->name('invoice.show');
     Route::get('/credits', [SaleController::class, 'credits'])->name('sale.credits');
     Route::resource('/summaries', SummaryController::class);
     Route::resource('/riders', RiderController::class);
-    Route::post('/reminders', [ReminderController::class, 'process'])->name('reminders.set');
+    Route::post('/reminders', [ReminderController::class, 'process'])->name('reminders.store');
     Route::get('/reminders', [ReminderController::class, 'index'])->name('reminders.index');
     Route::get('/reminders/{date}', [ReminderController::class, 'show'])->name('reminders.show');
     route::put('/reminders', [ReminderController::class, 'setComplete'])->name('reminders.setComplete');
     route::get('/sale/{id}/read', [SaleController::class, 'read']);
     route::get('/sales/async', [SaleController::class, 'asyncIndex']);
     route::get('/quotes', [DashboardController::class, 'quotes']);
+    Route::get('/billings', [BillingController::class, 'index'])->name('billings.index');
+    Route::post('/billings', [BillingController::class, 'pay'])->name('billings.pay');
 
 });
 

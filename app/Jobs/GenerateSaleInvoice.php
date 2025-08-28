@@ -31,7 +31,6 @@ class GenerateSaleInvoice implements ShouldQueue
     public function handle()
     {
 
-        InvoiceController::show($this->saleUuid);
     }
 
     public function failed(\Throwable $exception)

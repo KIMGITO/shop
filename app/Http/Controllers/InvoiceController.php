@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\BasePdf;
 use App\Models\Sale;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon;
@@ -42,10 +43,10 @@ protected static function getConfigSettings()
     // Usage in your method
 
     // Usage in your method
-    public function show($uuid)
+    public  function show($uuid)
     {
         $sale = Sale::with([
-            'payment:id,sale_id,method,amount_paid',
+            'payments:id,sale_id,method,amount_paid',
             'saleStock:stock_id,sale_id,quantity,subtotal',
             'saleStock.stock:id,product_id',
             'saleStock.stock.product:id,name,price_per_unit',
@@ -55,19 +56,18 @@ protected static function getConfigSettings()
             ->select(['id', 'uuid', 'invoice_number', 'total', 'balance', 'payment_status', 'user_id', 'customer_id'])
             ->where('uuid', $uuid)
             ->firstOrFail();
-        $config = self::getConfigSettings();
+        $config = BasePdf::getConfigSettings();
         // Prepare PDF data
         $data = [
             'sale' => $sale,
-            'logo' => self::getCachedLogo(),
+            'logo' => BasePdf::getCachedLogo(),
             'fmt' => new NumberFormatter('en_KE', NumberFormatter::CURRENCY),
             'count' => $sale->saleStock->count(),
             'date' => now()->format('d/m/Y H:i'),
             'phone' => $config['phone'],
             'till_number' => $config['till_number']
         ];
-
-        $height = min(510 + ($sale->saleStock->count() * 18.4) + ($sale->payment->count() * 12), 800);
+        $height = min(510 + ($sale->saleStock->count() * 18.4) + ($sale->payments->count() * 12), 800);
 
         $pdf = PDF::loadView('invoices.sale', $data)
             ->setPaper([0, 0, 226.77, $height])
@@ -91,15 +91,17 @@ protected static function getConfigSettings()
             File::ensureDirectoryExists($directory);
             $filePath = "{$directory}/{$sale->invoice_number}.pdf";
             $pdf->save($filePath);
-            // $pdf->stream("{$sale->invoice_number}.pdf");
 
             return response()->file($filePath, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'inline; filename="' . $sale->invoice_number . '.pdf"'
             ]);
         } else {
-            // For unpaid sales: stream without saving
             return $pdf->stream("{$sale->invoice_number}.pdf");
         }
     }
+
+
+   
+
 }

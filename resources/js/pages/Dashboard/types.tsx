@@ -125,18 +125,7 @@ export interface SaleStock {
 }
 
 export interface Customer {
-    id: number;
-    uuid: string;
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-    home: string;
-    house_number: string;
-    bill_cycle: 'daily' | 'weekly' | 'monthly';
-    note: string;
-    created_at: string;
-    updated_at: string;
+    
 }
 
 export interface Payment {
@@ -197,17 +186,29 @@ export interface RiderProps{
     deliveries: DeliveryProp[];
 }
 
-export interface CustomerProp{
+export interface CustomerProp {
+    name: string;
+    address: string;
+    bill: number;
     id: number;
     uuid: string;
     first_name: string;
     last_name: string;
-    name: string;
     email: string;
     phone: string;
-    address: string;
+    home: string;
+    house_number: string;
+    bill_cycle: 'daily' | 'weekly' | 'monthly';
     note: string;
-    bill: number;
+    created_at: string;
+    updated_at: string;
     sales: Sale[];
+}
 
+export default interface DebtProps {
+    customer_id:number,
+    customer_uuid:string,
+    total_balance:number
+    sales: Sale;
+    customer: CustomerProp;
 }

@@ -227,7 +227,7 @@ what needs to be catched only in this balde ? whjat can be optimised? this is my
             <td class="bold">AMOUNT</td>
         </tr>
 
-        @foreach ($sale->payment as $payment)
+        @foreach ($sale->payments as $payment)
             <tr>
                 <td>{{ Str::upper($payment->method) }}</td>
                 <td>{{ Str::upper('QT9HDI23') }}</td>

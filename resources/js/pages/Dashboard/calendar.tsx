@@ -78,7 +78,7 @@ export default function DashboardCalendar({onChange}) {
             });
         } else {
             axios
-                .post('/reminders', reminderData)
+                .post( route('reminders.store'), reminderData)
                 .then((res) => {
                     setReminderData({ date: date, repeat: '', name: '', description: '' });
                     toast.success(res.data.message, {
@@ -128,7 +128,6 @@ export default function DashboardCalendar({onChange}) {
                         setDate(new Date(date).toLocaleDateString('en-CA'));
                         setRemindersIsLoading(true);
                     }}
-                    
                     className="rounded-md border"
                     classNames={{
                         day: ' mx-1 text-xs',
@@ -211,6 +210,7 @@ export default function DashboardCalendar({onChange}) {
                                             <SelectValue placeholder="repeat" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value={'none'}>No Repeat</SelectItem>
                                             <SelectItem value="daily">Daily</SelectItem>
                                             <SelectItem value="weekly">Weekly</SelectItem>
                                             <SelectItem value="monthly">Monthly</SelectItem>
@@ -250,7 +250,7 @@ export default function DashboardCalendar({onChange}) {
                                         More reminders
                                     </span>
                                 ) : selectedDateReminders.length < 1 ? (
-                                    <span onClick={() => {}} className="text-red-500 text-xs">
+                                    <span onClick={() => {}} className="text-xs text-red-500">
                                         No reminders for this day.
                                     </span>
                                 ) : (

@@ -30,7 +30,7 @@ class ReminderController extends Controller
                         ->where('complete', false);
                 }),
             ],
-            'repeat' => 'required|string',
+            'repeat' => 'required',
             'date' => 'required|date|after_or_equal:today',
             'description' => 'required|max:100'
         ];
@@ -54,6 +54,8 @@ class ReminderController extends Controller
                 'message' => $validator->errors()->first(), // just one message
             ], 422);
         }
+
+        
 
 
         $attributes = [

@@ -98,6 +98,7 @@ export default function PaymentForm({ saleId, saleBalance, onClose, onChange }: 
             })
             .catch((error) => {
                 const message = error.response.data.message;
+                console.log(error.response.data)
                 
                 toast.error(message, { duration: 3000 });
             })

@@ -107,7 +107,7 @@ export default function SaleIndex({ sales }: SalesProp) {
                                                 ))}
                                             </ul>
                                         </TableCell>
-                                        <TableCell>{sale.customer?.first_name || 'Walk-in Customer'}</TableCell>
+                                        <TableCell className='capitalize'>{sale.customer?.name || 'Walk-in Customer'}</TableCell>
                                         <TableCell className="text-right font-medium">{formatCurrency(sale.total)}</TableCell>
                                         <TableCell>{getPaymentStatusBadge(sale.payment_status)}</TableCell>
                                         <TableCell className="flex items-center space-x-2">
@@ -116,7 +116,7 @@ export default function SaleIndex({ sales }: SalesProp) {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        disabled={sale.payment_status === 'paid'}
+                                                        disabled={sale.payment_status === 'paid' || sale.balance <= 0}
                                                         onClick={() => {
                                                             setId(sale.id);
                                                             setSaleBalance(sale.balance)

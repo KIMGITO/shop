@@ -8,6 +8,8 @@ import {
     BookOpen,
     BookOpenText,
     Cog,
+    CreditCard,
+    DollarSign,
     DollarSignIcon,
     Euro,
     Frame,
@@ -21,6 +23,7 @@ import {
     PieChart,
     PillBottle,
     Settings2,
+    Tags,
     Truck,
     Users,
     UsersRound,
@@ -51,9 +54,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         },
         teams: [
             {
-                name: '',
-                logo: Info,
-                plan: 'Enterprise',
+                name: 'KayKays',
+                logo: DollarSign,
+                plan: 'milk bar',
             },
         ],
         navMain: [
@@ -81,11 +84,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         url: '/summaries',
                         icon: BookOpen,
                     },
-                    {
-                        title: 'Deliveries',
-                        url: '/deliveries',
-                        icon: Truck,
-                    },
+                    // {
+                    //     title: 'Deliveries',
+                    //     url: '/deliveries',
+                    //     icon: Truck,
+                    // },
                 ],
             },
             {
@@ -120,21 +123,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         url: '/riders',
                         icon: PersonStanding,
                     },
-                    {
-                        title: 'Billed',
-                        url: '/billed',
-                        icon: Euro,
-                    },
+                    // {
+                    //     title: 'Invoices',
+                    //     url: '/invoices',
+                    //     icon: Tags,
+                    // },
                     {
                         title: 'Invoices',
-                        url: '/invoices',
-                        icon: BookOpenText,
+                        url: '/billings',
+                        icon: Tags,
                     },
-                    {
-                        title: 'Expenses',
-                        url: '/expenses',
-                        icon: Wallet,
-                    },
+                    // {
+                    //     title: 'Expenses',
+                    //     url: '/expenses',
+                    //     icon: Wallet,
+                    // },
                 ],
             },
             {

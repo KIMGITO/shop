@@ -40,7 +40,7 @@ class Sale extends Model
     {
         return $this->belongsTo(User::class);
     }
-    public function payment()
+    public function payments()
     {
         return $this->hasMany(Payment::class, 'sale_id');
     }

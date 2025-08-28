@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('name');
             $table->string('description');
-            $table->enum('repeat', ['daily', 'weekly', 'monthly']);
+            $table->enum('repeat', ['none','daily', 'weekly', 'monthly']);
             $table->date('show_on');
             $table->boolean('complete');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('cascade');

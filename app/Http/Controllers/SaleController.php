@@ -160,13 +160,13 @@ class SaleController extends Controller
     {
         $id = Sale::where('uuid', $uuid)->value('id');
         
-        $sale = Sale::with(['customer','payment', 'saleStock.stock.product'])
+        $sale = Sale::with(['customer','payments', 'saleStock.stock.product'])
             ->find($id);
         return Inertia::render('Sales/Show', ['sale' => $sale]);
     }
 
     public function read($id){
-        $sale = Sale::with(['customer', 'payment', 'saleStock.stock.product'])->find($id);
+        $sale = Sale::with(['customer', 'payments', 'saleStock.stock.product'])->find($id);
         return response()->json([
             'sale' => $sale,
         ]);

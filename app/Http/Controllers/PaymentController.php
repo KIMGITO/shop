@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePaymentRequest;
 use App\Models\Sale;
 use App\Models\Payment;
 use Illuminate\Http\Request;
@@ -9,46 +10,35 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
 
-
-    public function store(Request $request)
+    public function store(StorePaymentRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'sale_id' => 'required|exists:sales,id',
-            'amount_paid' => 'required|numeric|min:1',
-            'method' => 'required',
-            'date' => 'nullable|date',
-        ]);
+        $validated = $request->validated();
+        $sale = Sale::findOrFail($validated['sale_id']);
+        $balance = max($validated['amount_paid'] - $sale['balance'],0);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => $validator->errors()->first(),
-            ], 422);
-        }
-
-        $validated = $validator->validate();
-
+      
         $validated['user_id'] = Auth::user()->id;
         $validated['date'] = Date::now();
-        $validated['balance'] = $request['new_balance'];
-
+        $validated['balance'] = $balance;
        
-        Payment::create(
-            $validated
-        );
-        // update sale attributes
-        $payment_status = $request['new_balance'] == 0 ? 'paid' : 'partial';
-        $paid = Sale::where('id', $validated['sale_id'])->update(['balance' => $request['new_balance'], 'payment_status' => $payment_status]);
-        if ($paid) {
+        $record = DB::transaction(function () use($validated) {
+            return Payment::create(
+                $validated
+            );
+        },3);
+
+        if ($record) {
             return response()->json([
                 'message' => 'Payment successful.',
             ]);
         }
         return response()->json([
-            'message' => 'Payment failed, please try again.',
+            'message' => 'Payment failed, try again.',
         ], 500);
     }
 }
