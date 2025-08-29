@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: laravel-app
+    name: kaykay
     env: native
     plan: free
     buildCommand: |
