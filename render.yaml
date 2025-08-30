@@ -1,0 +1,19 @@
+# render.yaml
+services:
+  - type: web
+    name: kaykay
+    env: php
+    plan: free
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      php artisan optimize:clear
+      php artisan optimize
+    startCommand: "php artisan serve --host=0.0.0.0 --port=10000"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: LOG_CHANNEL
+        value: stderr
+      # You will add more (APP_KEY, DB details) in the dashboard later!
