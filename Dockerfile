@@ -8,15 +8,23 @@ RUN apk update && \
         git \
         zip \
         unzip \
-        libpng-dev \
-        libzip-dev \
-        oniguruma-dev \
         # MySQL dependencies:
         mariadb-client \
-        mariadb-connector-c-dev
+        mariadb-connector-c-dev \
+        # Build dependencies (will be removed later):
+        build-base \
+        # GD extension dependencies:
+        libpng-dev \
+        libjpeg-turbo-dev \
+        freetype-dev \
+        # ZIP extension dependencies:
+        libzip-dev \
+        # Other extension dependencies:
+        oniguruma-dev
 
 # Install and enable PHP extensions
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install \
         pdo_mysql \
         mbstring \
         tokenizer \
@@ -35,6 +43,9 @@ COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+# Clean up build dependencies to keep image small (optional)
+RUN apk del build-base
 
 # Set file permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
