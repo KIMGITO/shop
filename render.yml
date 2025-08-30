@@ -1,14 +1,10 @@
 # render.yaml
 services:
   - type: web
-    name: kaykay
-    env: php
+    name: your-laravel-app-name
     plan: free
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan optimize:clear
-      php artisan optimize
-    startCommand: "php artisan serve --host=0.0.0.0 --port=10000"
+    branch: your-branch-name # <- e.g., master
+    dockerfilePath: Dockerfile # <- This line tells Render to use the Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -16,4 +12,4 @@ services:
         value: false
       - key: LOG_CHANNEL
         value: stderr
-      # You will add more (APP_KEY, DB details) in the dashboard later!
+    # Add your other vars (APP_KEY, DB_*) in the Render Dashboard
