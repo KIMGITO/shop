@@ -12,4 +12,4 @@ services:
         value: false
       - key: LOG_CHANNEL
         value: stderr
-    # Add your other vars (APP_KEY, DB_*) in the Render Dashboard
+    # Add your other vars (APP_KEY, DB_*) in the Render Dashboard okay?
