@@ -14,17 +14,18 @@ RUN apk update && \
         # Build dependencies (will be removed later):
         build-base \
         # GD extension dependencies:
-        libpng-dev \
-        libjpeg-turbo-dev \
         freetype-dev \
+        libjpeg-turbo-dev \
+        libpng-dev \
         # ZIP extension dependencies:
         libzip-dev \
         # Other extension dependencies:
         oniguruma-dev
 
-# Install and enable PHP extensions
+# Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install \
+        pdo \
         pdo_mysql \
         mbstring \
         tokenizer \
@@ -44,11 +45,12 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-# Clean up build dependencies to keep image small (optional)
+# Clean up build dependencies to keep image small
 RUN apk del build-base
 
 # Set file permissions for Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache && \
+    chown -R www-data:www-data storage bootstrap/cache
 
 # Expose the port the app runs on
 EXPOSE 10000
