@@ -38,7 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/sale', SaleController::class); //CRUD
     Route::get('/sale/create-async', [SaleController::class, 'createAsync']);
     Route::resource('/customers', CustomerController::class); //CRUD
-    Route::get('/invoice/{uuid}', [InvoiceController::class, 'show']) -> name('invoice.show');
+    // Route::get('/invoice/{uuid}', [InvoiceController::class, 'show']) -> name('invoice.show');
     Route::get('/invoice/show/{uuid}', [BillingController::class, 'getCustomerDebts'])->name('invoice.show');
     Route::get('/credits', [SaleController::class, 'credits'])->name('sale.credits');
     Route::resource('/summaries', SummaryController::class);
